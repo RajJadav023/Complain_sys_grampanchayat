@@ -33,10 +33,8 @@ const Navbar = () => {
                 <div className="flex justify-between h-20 items-center">
                     <div className="flex-shrink-0 flex items-center">
                         <Link to="/" className="flex items-center space-x-3 group">
-                            <div className="bg-blue-600 p-2 rounded-2xl group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-blue-500/20">
-                                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
+                            <div className="group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-blue-500/20 rounded-2xl overflow-hidden h-10 w-10 flex items-center justify-center">
+                                <img src="/dcms-logo.png" alt="DCMS Logo" className="h-full w-full object-cover" />
                             </div>
                             <span className="text-gray-900 text-2xl font-black tracking-tight">DCMS</span>
                         </Link>
@@ -63,16 +61,16 @@ const Navbar = () => {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-6">
+                        <div className="flex items-center space-x-8">
                             {user ? (
-                                <div className="flex items-center space-x-4">
-                                    <div className="hidden md:flex flex-col items-end">
-                                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">{t('navbar.authenticated')}</span>
+                                <div className="flex items-center">
+                                    <div className="hidden md:flex flex-col items-end mr-6">
+                                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1.5">{t('navbar.authenticated')}</span>
                                         <span className="text-xs font-bold text-gray-500 leading-none">{user.name}</span>
                                     </div>
                                     <button
                                         onClick={handleLogout}
-                                        className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-200 transition-all active:scale-95"
+                                        className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-200 transition-all active:scale-95 shadow-sm hover:shadow-md"
                                     >
                                         {t('navbar.signOut')}
                                     </button>
@@ -85,23 +83,23 @@ const Navbar = () => {
                                     </Link>
                                 </div>
                             )}
-                        </div>
 
-                        {/* Language Selector */}
-                        <div className="relative">
-                            <select
-                                onChange={changeLanguage}
-                                value={i18n.language}
-                                className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer hover:bg-gray-100"
-                            >
-                                <option value="en">English</option>
-                                <option value="gu">ગુજરાતી</option>
-                                <option value="hi">हिन्दी</option>
-                            </select>
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
+                            {/* Language Selector */}
+                            <div className="relative ml-4">
+                                <select
+                                    onChange={changeLanguage}
+                                    value={i18n.language}
+                                    className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl px-5 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer hover:bg-gray-100 shadow-sm"
+                                >
+                                    <option value="en">English</option>
+                                    <option value="gu">ગુજરાતી</option>
+                                    <option value="hi">हिन्दी</option>
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>

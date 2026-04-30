@@ -23,7 +23,7 @@ const ProtectedLayout = ({ children, adminOnly = false }) => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <Navbar />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 px-4">
+      <main className="max-w-7xl mx-auto pt-2 pb-8 sm:px-6 lg:px-8 px-4">
         {children}
       </main>
     </div>

@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 export default function Login() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
     const [formData, setFormData] = useState({
@@ -14,6 +14,10 @@ export default function Login() {
     });
     const [message, setMessage] = useState({ type: '', text: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const changeLanguage = (e) => {
+        i18n.changeLanguage(e.target.value);
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,7 +50,26 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans">
+        <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans relative">
+            {/* Language Selector */}
+            <div className="absolute top-6 right-6 z-50">
+                <div className="relative">
+                    <select
+                        onChange={changeLanguage}
+                        value={i18n.language}
+                        className="appearance-none bg-white border border-gray-200 text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl px-5 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer hover:bg-gray-50 shadow-sm"
+                    >
+                        <option value="en">English</option>
+                        <option value="gu">ગુજરાતી</option>
+                        <option value="hi">हिन्दी</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
             {/* Left Side: Branding & Info */}
             <div className="hidden md:flex md:w-1/2 bg-blue-600 items-center justify-center p-12 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
