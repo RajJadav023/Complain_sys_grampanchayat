@@ -1,3 +1,7 @@
+API for PIN code:
+
+GET https://api.postalpincode.in/pincode/{pincode}
+
 # 📝 Digital Complaint Management System
 
 A simple, web-based application designed to streamline the process of lodging and managing complaints in Grampanchayat offices.
@@ -38,9 +42,9 @@ This Digital Complaint Management System provides:
 
 ## 🛠️ Technologies Used
 
-- ⚡ JavaScript (Main logic & interactivity)
-- 💻 HTML & CSS (Frontend)
-
+- 💻 React JS(Frontend)
+- MongoDB , Express JS , Node Js ,
+- git/github
 ---
 
 ## ▶️ Getting Started

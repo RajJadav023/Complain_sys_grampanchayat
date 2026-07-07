@@ -112,6 +112,22 @@ export default function Status() {
                                             </p>
                                         </div>
 
+                                        {complaint.documentUrl && (
+                                            <div>
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('status.labels.attachment', 'Attachment')}</h4>
+                                                <a href={complaint.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-block group/att">
+                                                    {/\.(jpg|jpeg|png|webp)$/i.test(complaint.documentUrl) ? (
+                                                        <img src={complaint.documentUrl} alt="Complaint attachment" className="h-32 w-auto rounded-2xl border border-gray-100 object-cover group-hover/att:ring-4 ring-blue-100 transition-all" />
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-black text-gray-600 uppercase tracking-widest hover:bg-gray-100 transition-all">
+                                                            <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                                            View Document
+                                                        </span>
+                                                    )}
+                                                </a>
+                                            </div>
+                                        )}
+
                                         {complaint.adminResponse ? (
                                             <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-50 animate-in slide-in-from-bottom-2 duration-700">
                                                 <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 flex items-center">

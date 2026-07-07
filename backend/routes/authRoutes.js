@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 
 // Register
 router.post('/register', async (req, res) => {
-    const { name, email, password, role, phoneNumber, pincode, village, address } = req.body;
+    const { name, email, password, phoneNumber, pincode, village, address } = req.body;
 
     try {
         const userExists = await User.findOne({ email });
@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
             name,
             email,
             password,
-            role,
+            role: 'user', // Security: role is never accepted from the client. Admins are provisioned via seed script.
             phoneNumber,
             pincode,
             village,

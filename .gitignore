@@ -13,3 +13,6 @@ dist/
 build/
 .DS_Store
 *.log
+
+# Uploaded complaint attachments (user-generated content)
+backend/uploads/

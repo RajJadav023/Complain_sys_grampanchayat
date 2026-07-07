@@ -9,6 +9,12 @@ export default function AdminDashboard() {
     const [globalMessage, setGlobalMessage] = useState({ type: '', text: '' });
     const [showAddNews, setShowAddNews] = useState(false);
 
+    // Search & filter state
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [categoryFilter, setCategoryFilter] = useState('All');
+    const [priorityFilter, setPriorityFilter] = useState('All');
+
     const [eventForm, setEventForm] = useState({
         title: '',
         category: 'Infrastructure',
@@ -109,6 +115,62 @@ export default function AdminDashboard() {
         resolved: complaints.filter(c => c.status === 'Resolved').length,
     };
 
+    // --- Analytics (computed from the full dataset) ---
+    const CATEGORIES = ['Electricity', 'Road', 'Water', 'Sanitization', 'Garbage', 'Other'];
+    const categoryCounts = CATEGORIES.map(cat => ({
+        name: cat,
+        count: complaints.filter(c => c.category === cat).length,
+    })).filter(c => c.count > 0);
+    const maxCategoryCount = Math.max(1, ...categoryCounts.map(c => c.count));
+
+    const resolutionRate = stats.total ? Math.round((stats.resolved / stats.total) * 100) : 0;
+
+    const resolvedWithTime = complaints.filter(c => c.status === 'Resolved' && c.createdAt && c.updatedAt);
+    const avgResolutionDays = resolvedWithTime.length
+        ? (resolvedWithTime.reduce((sum, c) => sum + (new Date(c.updatedAt) - new Date(c.createdAt)), 0)
+            / resolvedWithTime.length / (1000 * 60 * 60 * 24))
+        : 0;
+
+    // --- Filtering ---
+    const filteredComplaints = complaints.filter(c => {
+        const q = search.trim().toLowerCase();
+        const matchesSearch = !q
+            || c.title?.toLowerCase().includes(q)
+            || c.description?.toLowerCase().includes(q)
+            || c.user?.name?.toLowerCase().includes(q)
+            || c.village?.toLowerCase().includes(q);
+        const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
+        const matchesCategory = categoryFilter === 'All' || c.category === categoryFilter;
+        const matchesPriority = priorityFilter === 'All' || c.priority === priorityFilter;
+        return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+    });
+
+    const resetFilters = () => {
+        setSearch('');
+        setStatusFilter('All');
+        setCategoryFilter('All');
+        setPriorityFilter('All');
+    };
+
+    const exportCSV = () => {
+        const headers = ['Title', 'Category', 'Priority', 'Status', 'Citizen', 'Village', 'Description', 'Admin Response', 'Filed On'];
+        const escape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+        const rows = filteredComplaints.map(c => [
+            c.title, c.category, c.priority, c.status,
+            c.user?.name || '', c.village || '',
+            c.description, c.adminResponse || '',
+            c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''
+        ].map(escape).join(','));
+        const csv = [headers.map(escape).join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `dcms-complaints-${filteredComplaints.length}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -158,13 +220,105 @@ export default function AdminDashboard() {
 
             {activeTab === 'complaints' ? (
                 <div className="space-y-6">
+                    {complaints.length > 0 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+                            {/* Complaints by Category */}
+                            <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Complaints by Category</div>
+                                <div className="space-y-4">
+                                    {categoryCounts.length === 0 ? (
+                                        <p className="text-sm text-gray-400 font-medium">No data yet.</p>
+                                    ) : categoryCounts.map(cat => (
+                                        <div key={cat.name} className="flex items-center gap-4">
+                                            <div className="w-24 text-[11px] font-black text-gray-500 uppercase tracking-wider shrink-0">{cat.name}</div>
+                                            <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                                                <div
+                                                    className="h-full bg-blue-600 rounded-full transition-all duration-700"
+                                                    style={{ width: `${(cat.count / maxCategoryCount) * 100}%` }}
+                                                ></div>
+                                            </div>
+                                            <div className="w-8 text-right text-sm font-black text-gray-900">{cat.count}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Resolution metrics */}
+                            <div className="bg-gray-900 text-white p-8 rounded-3xl shadow-lg flex flex-col justify-between">
+                                <div>
+                                    <div className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Resolution Rate</div>
+                                    <div className="flex items-end gap-2">
+                                        <span className="text-5xl font-black">{resolutionRate}</span>
+                                        <span className="text-2xl font-black text-gray-500 mb-1">%</span>
+                                    </div>
+                                    <div className="mt-3 bg-white/10 rounded-full h-2 overflow-hidden">
+                                        <div className="h-full bg-green-500 rounded-full transition-all duration-700" style={{ width: `${resolutionRate}%` }}></div>
+                                    </div>
+                                </div>
+                                <div className="mt-8 pt-6 border-t border-white/10">
+                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Avg. Resolution Time</div>
+                                    <div className="text-2xl font-black">
+                                        {resolvedWithTime.length ? `${avgResolutionDays.toFixed(1)} days` : '—'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Search & Filter toolbar */}
+                    {complaints.length > 0 && (
+                        <div className="bg-white p-4 md:p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col lg:flex-row gap-3 lg:items-center">
+                            <div className="relative flex-1">
+                                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search title, citizen, village..."
+                                    className="w-full bg-gray-50 border border-gray-100 pl-11 pr-4 py-3 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                                />
+                            </div>
+                            <div className="grid grid-cols-3 lg:flex gap-3">
+                                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider outline-none focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer">
+                                    {['All', 'Pending', 'In Progress', 'Resolved', 'Redirected'].map(s => <option key={s} value={s}>{s === 'All' ? 'All Status' : s}</option>)}
+                                </select>
+                                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider outline-none focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer">
+                                    {['All', ...CATEGORIES].map(c => <option key={c} value={c}>{c === 'All' ? 'All Category' : c}</option>)}
+                                </select>
+                                <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider outline-none focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer">
+                                    {['All', 'Low', 'Medium', 'High'].map(p => <option key={p} value={p}>{p === 'All' ? 'All Priority' : p}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex gap-3">
+                                <button onClick={resetFilters} className="px-4 py-3 bg-gray-50 hover:bg-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-100 transition-all">Reset</button>
+                                <button onClick={exportCSV} className="px-5 py-3 bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 shadow-md shadow-green-500/10">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {complaints.length > 0 && (
+                        <div className="px-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            Showing {filteredComplaints.length} of {complaints.length} reports
+                        </div>
+                    )}
+
                     {complaints.length === 0 ? (
                         <div className="text-center py-24 bg-white rounded-[40px] border-2 border-dashed border-gray-100">
                             <h3 className="text-lg font-black text-gray-900">District clear</h3>
                             <p className="mt-1 text-sm text-gray-400 font-medium">All registered reports have been processed.</p>
                         </div>
+                    ) : filteredComplaints.length === 0 ? (
+                        <div className="text-center py-20 bg-white rounded-[40px] border-2 border-dashed border-gray-100">
+                            <h3 className="text-lg font-black text-gray-900">No matches</h3>
+                            <p className="mt-1 text-sm text-gray-400 font-medium">No reports match your current filters.</p>
+                        </div>
                     ) : (
-                        complaints.map(complaint => (
+                        filteredComplaints.map(complaint => (
                             <AdminComplaintCard
                                 key={complaint._id}
                                 complaint={complaint}
@@ -359,6 +513,23 @@ function AdminComplaintCard({ complaint, onUpdate, onDelete }) {
                         </div>
                     </div>
                 </div>
+
+                {/* Attachment */}
+                {complaint.documentUrl && (
+                    <div className="mb-8">
+                        <div className="text-xs text-gray-400 font-medium mb-2">Attachment</div>
+                        <a href={complaint.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+                            {/\.(jpg|jpeg|png|webp)$/i.test(complaint.documentUrl) ? (
+                                <img src={complaint.documentUrl} alt="Attachment" className="h-28 w-auto rounded-xl border border-gray-100 object-cover hover:ring-4 ring-blue-100 transition-all" />
+                            ) : (
+                                <span className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition-all">
+                                    <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                    View Document
+                                </span>
+                            )}
+                        </a>
+                    </div>
+                )}
 
                 {/* Toggleable Response Form */}
                 {isResponding && (
