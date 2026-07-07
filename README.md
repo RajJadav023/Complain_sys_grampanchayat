@@ -1,6 +1,3 @@
-API for PIN code:
-
-GET https://api.postalpincode.in/pincode/{pincode}
 
 # 📝 Digital Complaint Management System
 
